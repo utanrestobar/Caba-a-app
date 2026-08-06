@@ -1,1 +1,292 @@
-<!doctype html><html lang='es'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><meta name='theme-color' content='#080808'><link rel='manifest' href='manifest.json'><title>Cabaña | Gestión</title><style>*{box-sizing:border-box}body{margin:0;background:#080808;color:#fff;font-family:Arial,sans-serif}.wrap{max-width:520px;margin:auto;padding:28px 18px}.brand{text-align:center;margin:25px 0 35px}.brand h1{font-size:30px;margin:0}.brand p{color:#aaa}.card{background:#151515;border:1px solid #2a2a2a;border-radius:20px;padding:18px;margin:12px 0}.card h2{font-size:18px;margin:0 0 7px}.card p{margin:0;color:#aaa;font-size:14px}.btn{display:block;width:100%;margin-top:12px;padding:14px;border:0;border-radius:12px;background:#fff;color:#000;font-weight:bold;font-size:15px}.status{display:inline-block;padding:6px 10px;border-radius:99px;background:#203525;color:#b9f3c5;font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.small{text-align:center}.small b{font-size:22px;display:block;margin-bottom:4px}footer{text-align:center;color:#666;font-size:12px;margin-top:28px}</style></head><body><main class='wrap'><div class='brand'><span class='status'>● Sistema activo</span><h1>Mi Cabaña</h1><p>Reservas y operación en un solo lugar</p></div><div class='grid'><div class='card small'><b id='reservas'>0</b><span>Reservas</span></div><div class='card small'><b id='hoy'>Libre</b><span>Estado hoy</span></div></div><div class='card'><h2>📅 Reservas</h2><p>Calendario sin superposiciones, huéspedes y estadías.</p><button class='btn' onclick="alert('Módulo de reservas preparado para conectar con la base de datos.')">Abrir reservas</button></div><div class='card'><h2>💳 Pagos</h2><p>Confirmación de pago antes de habilitar el acceso.</p><button class='btn' onclick="alert('Módulo de pagos preparado.')">Ver pagos</button></div><div class='card'><h2>🔑 Accesos</h2><p>QR para portón y cabaña, válido según cada reserva.</p><button class='btn' onclick="alert('Módulo QR preparado para integrar con el controlador de puertas.')">Gestionar accesos</button></div><div class='card'><h2>☕ Operación</h2><p>Desayuno, limpieza, check-in, checkout y avisos.</p><button class='btn' onclick="alert('Módulo operativo preparado.')">Ver operación</button></div><div class='card'><h2>⚠️ Emergencias</h2><p>Alertas por falta de conexión y apertura manual.</p><button class='btn' onclick="alert('Módulo de contingencia preparado.')">Configurar responsables</button></div><footer>Panel privado del propietario · Versión inicial</footer></main><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');</script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <title>Cabaña</title>
+  <style>
+    :root{
+      --bg:#000;--card:#111;--card2:#181818;--txt:#fff;--muted:#9b9b9b;--line:#2b2b2b;
+      --ok:#41d17d;--warn:#ffcc66;--danger:#ff6b6b;--accent:#f4f4f4;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+    .wrap{max-width:980px;margin:auto;padding:18px 14px 100px}
+    .top{display:flex;align-items:center;justify-content:space-between;margin:4px 0 18px}
+    h1{font-size:28px;margin:0} .small{color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+    .metric{font-size:26px;font-weight:800}.label{font-size:12px;color:var(--muted);margin-top:4px}
+    .section{margin-top:14px}.section h2{font-size:18px;margin:0 0 10px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:150px}
+    input,select,textarea,button{width:100%;border-radius:12px;border:1px solid var(--line);background:#0d0d0d;color:#fff;padding:12px;font-size:15px}
+    textarea{min-height:86px;resize:vertical}
+    button{cursor:pointer;font-weight:700;background:#f2f2f2;color:#000;border:none}
+    button.secondary{background:#1c1c1c;color:#fff;border:1px solid var(--line)}
+    button.danger{background:#2a1111;color:#ff9b9b}
+    .list{display:grid;gap:9px}
+    .item{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:13px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .item strong{display:block}.pill{font-size:12px;padding:6px 9px;border-radius:999px;background:#222;color:#ddd;white-space:nowrap}
+    .pill.ok{background:#11341f;color:#86f0ad}.pill.warn{background:#3a2d10;color:#ffd77c}.pill.danger{background:#3b1515;color:#ff9a9a}
+    nav{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:10}
+    nav .inner{width:min(980px,100%);display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+    nav button{background:transparent;color:#aaa;padding:10px 4px;font-size:12px;border-radius:10px}
+    nav button.active{background:#171717;color:#fff}
+    .page{display:none}.page.active{display:block}
+    .empty{color:var(--muted);padding:18px 0;text-align:center}
+    .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .day{min-height:76px;background:#111;border:1px solid var(--line);border-radius:10px;padding:7px;font-size:12px}
+    .day.busy{outline:1px solid #7a3b3b}.day .n{font-weight:800;font-size:14px}.day .b{margin-top:6px;color:#ffb1b1;font-size:11px}
+    .notice{background:#101b14;border:1px solid #1f5530;color:#bdf5cc;padding:12px;border-radius:12px;margin-bottom:10px}
+    .qrbox{border:1px dashed #555;border-radius:16px;padding:18px;text-align:center;background:#0a0a0a}
+    .code{font-size:28px;font-weight:900;letter-spacing:3px;margin:8px 0}
+    @media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.wrap{padding-top:10px}.day{min-height:62px;padding:5px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div><h1>Cabaña</h1><div class="small">Reservas, pagos y operación</div></div><div id="today" class="small"></div></div>
+
+  <section id="inicio" class="page active">
+    <div class="grid">
+      <div class="card"><div id="mReservas" class="metric">0</div><div class="label">Reservas activas</div></div>
+      <div class="card"><div id="mPendientes" class="metric">0</div><div class="label">Pagos pendientes</div></div>
+      <div class="card"><div id="mIngresos" class="metric">0</div><div class="label">Ingresos próximos</div></div>
+      <div class="card"><div id="mPersonas" class="metric">0</div><div class="label">Huéspedes</div></div>
+    </div>
+
+    <div class="section card">
+      <h2>Próximos movimientos</h2>
+      <div id="proximos" class="list"></div>
+    </div>
+  </section>
+
+  <section id="reservas" class="page">
+    <div class="card">
+      <h2>Nueva reserva</h2>
+      <div class="row">
+        <input id="nombre" placeholder="Nombre del huésped">
+        <input id="telefono" placeholder="WhatsApp">
+      </div>
+      <div class="row" style="margin-top:10px">
+        <input id="entrada" type="date">
+        <input id="salida" type="date">
+        <input id="personas" type="number" min="2" value="2" placeholder="Personas">
+      </div>
+      <div class="row" style="margin-top:10px">
+        <input id="precio" type="number" min="0" placeholder="Precio total">
+        <select id="pago"><option value="pendiente">Pago pendiente</option><option value="pagado">Pagado 100%</option></select>
+      </div>
+      <textarea id="notas" style="margin-top:10px" placeholder="Notas"></textarea>
+      <button style="margin-top:10px" onclick="crearReserva()">Guardar reserva</button>
+      <div id="msgReserva" class="small" style="margin-top:10px"></div>
+    </div>
+    <div class="section card"><h2>Reservas</h2><div id="listaReservas" class="list"></div></div>
+  </section>
+
+  <section id="calendario" class="page">
+    <div class="card">
+      <div class="row" style="align-items:center">
+        <button class="secondary" onclick="cambiarMes(-1)">←</button>
+        <div style="text-align:center;flex:3"><h2 id="mesTitulo" style="margin:0"></h2></div>
+        <button class="secondary" onclick="cambiarMes(1)">→</button>
+      </div>
+      <div class="calendar" style="margin-top:12px">
+        <div class="small">Lun</div><div class="small">Mar</div><div class="small">Mié</div><div class="small">Jue</div><div class="small">Vie</div><div class="small">Sáb</div><div class="small">Dom</div>
+      </div>
+      <div id="calendarGrid" class="calendar" style="margin-top:6px"></div>
+    </div>
+  </section>
+
+  <section id="operacion" class="page">
+    <div class="card">
+      <h2>Operación</h2>
+      <div id="opList" class="list"></div>
+    </div>
+  </section>
+
+  <section id="config" class="page">
+    <div class="card">
+      <h2>Configuración</h2>
+      <div class="row"><input id="checkin" type="time"><input id="checkout" type="time"></div>
+      <div class="row" style="margin-top:10px"><input id="capacidad" type="number" min="2" max="10"><input id="pagoAntes" type="number" min="1" max="168" placeholder="Horas antes pago 100%"></div>
+      <div class="row" style="margin-top:10px"><input id="encDesayuno" placeholder="WhatsApp desayuno"><input id="encLimpieza" placeholder="WhatsApp limpieza"></div>
+      <div class="row" style="margin-top:10px"><input id="responsable" placeholder="WhatsApp dueño"><input id="alterno" placeholder="WhatsApp alterno"></div>
+      <button style="margin-top:10px" onclick="guardarConfig()">Guardar configuración</button>
+    </div>
+
+    <div class="section card">
+      <h2>Acceso QR / cerraduras</h2>
+      <div class="notice">La app ya genera un código único por reserva. Para abrir un portón o cerradura real hace falta conectar el modelo de cerradura/controlador que vayas a usar.</div>
+      <div id="qrDemo" class="qrbox"><div class="small">Seleccioná una reserva pagada para ver su acceso</div></div>
+    </div>
+
+    <div class="section card">
+      <h2>Respaldo</h2>
+      <div class="row"><button class="secondary" onclick="exportar()">Exportar datos</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importar datos</button></div>
+      <input id="importFile" type="file" accept="application/json" style="display:none" onchange="importar(event)">
+    </div>
+  </section>
+</div>
+
+<nav><div class="inner">
+  <button class="active" onclick="go('inicio',this)">Inicio</button>
+  <button onclick="go('reservas',this)">Reservas</button>
+  <button onclick="go('calendario',this)">Calendario</button>
+  <button onclick="go('operacion',this)">Operación</button>
+  <button onclick="go('config',this)">Ajustes</button>
+</div></nav>
+
+<script>
+const KEY='cabana_app_v1';
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||{
+  reservas:[],
+  config:{checkin:'15:00',checkout:'11:00',capacidad:3,pagoAntes:24,encDesayuno:'',encLimpieza:'',responsable:'',alterno:''}
+};
+let viewDate=new Date();
+
+function save(){localStorage.setItem(KEY,JSON.stringify(state));renderAll()}
+function id(){return Math.random().toString(36).slice(2,8).toUpperCase()}
+function d(s){return new Date(s+'T12:00:00')}
+function diasEntre(a,b){return Math.round((d(b)-d(a))/86400000)}
+function activo(r){return d(r.salida)>=new Date(new Date().toDateString())}
+function overlap(a1,a2,b1,b2){return d(a1)<d(b2)&&d(b1)<d(a2)}
+function money(n){return n?new Intl.NumberFormat('es-PY').format(n):'—'}
+
+function go(id,btn){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active'); renderAll();
+}
+
+function crearReserva(){
+  const r={
+    id:id(), nombre:nombre.value.trim(), telefono:telefono.value.trim(),
+    entrada:entrada.value, salida:salida.value, personas:+personas.value,
+    precio:+precio.value||0, pago:pago.value, notas:notas.value.trim(),
+    acceso:id(), desayuno:'pendiente', limpieza:'pendiente', created:Date.now()
+  };
+  const msg=document.getElementById('msgReserva');
+  if(!r.nombre||!r.entrada||!r.salida){msg.textContent='Faltan nombre y fechas.';return}
+  if(r.personas<2){msg.textContent='La reserva requiere mínimo 2 personas.';return}
+  if(r.personas>state.config.capacidad){msg.textContent='Supera la capacidad configurada.';return}
+  if(d(r.salida)<=d(r.entrada)){msg.textContent='La salida debe ser posterior a la entrada.';return}
+  if(state.reservas.some(x=>overlap(r.entrada,r.salida,x.entrada,x.salida))){msg.textContent='⚠️ Esas fechas ya están ocupadas. No se guardó la reserva.';return}
+  state.reservas.push(r); msg.textContent='Reserva guardada sin superposición.';
+  ['nombre','telefono','entrada','salida','precio','notas'].forEach(k=>document.getElementById(k).value='');
+  personas.value=2; pago.value='pendiente'; save();
+}
+
+function borrarReserva(xid){
+  if(confirm('¿Eliminar esta reserva?')){state.reservas=state.reservas.filter(r=>r.id!==xid);save()}
+}
+function togglePago(xid){
+  const r=state.reservas.find(r=>r.id===xid); r.pago=r.pago==='pagado'?'pendiente':'pagado'; save();
+}
+function setOp(xid,field,val){
+  const r=state.reservas.find(r=>r.id===xid); r[field]=val; save();
+}
+function acceso(xid){
+  const r=state.reservas.find(r=>r.id===xid);
+  document.getElementById('qrDemo').innerHTML=`<div class="small">${r.nombre}</div><div class="code">${r.acceso}</div><div class="small">Código único de esta reserva<br>${r.entrada} → ${r.salida}</div>`;
+  go('config',document.querySelectorAll('nav button')[4]);
+}
+
+function renderReservas(){
+  const box=document.getElementById('listaReservas');
+  const list=[...state.reservas].sort((a,b)=>a.entrada.localeCompare(b.entrada));
+  box.innerHTML=list.length?'':`<div class="empty">Todavía no hay reservas.</div>`;
+  list.forEach(r=>{
+    const el=document.createElement('div'); el.className='item';
+    el.innerHTML=`<div><strong>${r.nombre}</strong><div class="small">${r.entrada} → ${r.salida} · ${r.personas} personas · ${money(r.precio)}</div></div>
+    <div style="min-width:130px;display:grid;gap:6px">
+      <span class="pill ${r.pago==='pagado'?'ok':'warn'}">${r.pago==='pagado'?'Pagado':'Pendiente'}</span>
+      <button class="secondary" onclick="togglePago('${r.id}')">${r.pago==='pagado'?'Marcar pendiente':'Marcar pagado'}</button>
+      ${r.pago==='pagado'?`<button class="secondary" onclick="acceso('${r.id}')">Ver acceso</button>`:''}
+      <button class="danger" onclick="borrarReserva('${r.id}')">Eliminar</button>
+    </div>`;
+    box.appendChild(el);
+  });
+}
+
+function renderInicio(){
+  const act=state.reservas.filter(activo);
+  mReservas.textContent=act.length;
+  mPendientes.textContent=act.filter(r=>r.pago!=='pagado').length;
+  const now=new Date(); const seven=new Date(now.getTime()+7*86400000);
+  mIngresos.textContent=act.filter(r=>d(r.entrada)>=now&&d(r.entrada)<=seven).length;
+  mPersonas.textContent=act.reduce((s,r)=>s+r.personas,0);
+  const p=[...act].sort((a,b)=>a.entrada.localeCompare(b.entrada)).slice(0,6);
+  proximos.innerHTML=p.length?'':`<div class="empty">Sin movimientos próximos.</div>`;
+  p.forEach(r=>{
+    const el=document.createElement('div'); el.className='item';
+    el.innerHTML=`<div><strong>${r.nombre}</strong><div class="small">${r.entrada} · ${diasEntre(r.entrada,r.salida)} noche(s)</div></div><span class="pill ${r.pago==='pagado'?'ok':'warn'}">${r.pago==='pagado'?'Confirmada':'Pago pendiente'}</span>`;
+    proximos.appendChild(el)
+  });
+}
+
+function renderCalendar(){
+  const y=viewDate.getFullYear(), m=viewDate.getMonth();
+  mesTitulo.textContent=new Intl.DateTimeFormat('es',{month:'long',year:'numeric'}).format(viewDate);
+  calendarGrid.innerHTML='';
+  const first=new Date(y,m,1), offset=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate();
+  for(let i=0;i<offset;i++){calendarGrid.innerHTML+='<div></div>'}
+  for(let n=1;n<=days;n++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(n).padStart(2,'0')}`;
+    const rr=state.reservas.filter(r=>d(ds)>=d(r.entrada)&&d(ds)<d(r.salida));
+    const div=document.createElement('div');div.className='day'+(rr.length?' busy':'');
+    div.innerHTML=`<div class="n">${n}</div>${rr.map(r=>`<div class="b">${r.nombre}</div>`).join('')}`;
+    calendarGrid.appendChild(div);
+  }
+}
+function cambiarMes(n){viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+n,1);renderCalendar()}
+
+function renderOperacion(){
+  const list=[...state.reservas].filter(activo).sort((a,b)=>a.entrada.localeCompare(b.entrada));
+  opList.innerHTML=list.length?'':`<div class="empty">No hay reservas activas.</div>`;
+  list.forEach(r=>{
+    const el=document.createElement('div'); el.className='card';
+    el.innerHTML=`<strong>${r.nombre}</strong><div class="small">${r.entrada} → ${r.salida}</div>
+    <div class="row" style="margin-top:10px">
+      <select onchange="setOp('${r.id}','desayuno',this.value)">
+        <option value="pendiente" ${r.desayuno==='pendiente'?'selected':''}>Desayuno pendiente</option>
+        <option value="confirmado" ${r.desayuno==='confirmado'?'selected':''}>Desayuno confirmado</option>
+        <option value="hecho" ${r.desayuno==='hecho'?'selected':''}>Desayuno entregado</option>
+      </select>
+      <select onchange="setOp('${r.id}','limpieza',this.value)">
+        <option value="pendiente" ${r.limpieza==='pendiente'?'selected':''}>Limpieza pendiente</option>
+        <option value="lista" ${r.limpieza==='lista'?'selected':''}>Cabaña lista</option>
+      </select>
+    </div>`;
+    opList.appendChild(el)
+  });
+}
+
+function cargarConfig(){
+  checkin.value=state.config.checkin;checkout.value=state.config.checkout;capacidad.value=state.config.capacidad;
+  pagoAntes.value=state.config.pagoAntes;encDesayuno.value=state.config.encDesayuno;encLimpieza.value=state.config.encLimpieza;
+  responsable.value=state.config.responsable;alterno.value=state.config.alterno;
+}
+function guardarConfig(){
+  state.config={checkin:checkin.value,checkout:checkout.value,capacidad:+capacidad.value,pagoAntes:+pagoAntes.value,
+    encDesayuno:encDesayuno.value.trim(),encLimpieza:encLimpieza.value.trim(),responsable:responsable.value.trim(),alterno:alterno.value.trim()};
+  save(); alert('Configuración guardada');
+}
+function exportar(){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));
+  a.download='cabana-respaldo.json';a.click();URL.revokeObjectURL(a.href)
+}
+function importar(ev){
+  const f=ev.target.files[0]; if(!f)return;
+  const rd=new FileReader();rd.onload=()=>{try{state=JSON.parse(rd.result);save();cargarConfig();alert('Datos importados')}catch(e){alert('Archivo inválido')}};rd.readAsText(f)
+}
+function renderAll(){renderInicio();renderReservas();renderCalendar();renderOperacion();cargarConfig()}
+document.getElementById('today').textContent=new Intl.DateTimeFormat('es',{dateStyle:'medium'}).format(new Date());
+renderAll();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
