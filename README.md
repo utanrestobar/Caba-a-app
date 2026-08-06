@@ -1,26 +1,23 @@
-# Cabaña App
+# Cabaña App — versión final base
 
-Versión simple lista para subir a GitHub Pages.
+Esta versión deja terminada la app base para usar desde el celular.
 
-## Qué funciona ahora
-- Diseño negro tipo app.
-- Reservas.
-- Bloqueo de fechas superpuestas.
-- Mínimo 2 huéspedes y capacidad configurable.
-- Pago pendiente / pagado.
-- Calendario.
-- Código único de acceso por reserva pagada.
-- Seguimiento de desayuno y limpieza.
-- Configuración de horarios y responsables.
-- Respaldo/exportación e importación.
-- PWA básica instalable y caché offline.
+Incluye:
+- reservas y calendario
+- bloqueo total de fechas superpuestas
+- mínimo 2 huéspedes
+- pago manual y preparación para pago automático
+- WhatsApp manual con mensajes preparados
+- interruptor de WhatsApp automático
+- número de WhatsApp editable
+- interruptor de pagos automáticos
+- interruptor de acceso automático
+- operación de desayuno y limpieza
+- horarios y responsables configurables
+- PWA instalable
+- respaldo/importación
 
-## Qué requiere conexión externa/hardware para ser real
-- Apertura física de portón y puerta.
-- QR vinculado a cerradura real y restricción por dispositivo.
-- Envíos automáticos reales por WhatsApp.
-- Notificaciones push/SMS.
-- Pagos online reales.
-- Base de datos compartida entre varios celulares.
-
-Para esas funciones hace falta elegir proveedor de cerradura/controlador y backend.
+Las tres integraciones externas permanecen apagadas hasta que el propietario decida activarlas:
+1. WhatsApp Business API
+2. pasarela de pagos
+3. controlador/cerradura del portón y puerta
