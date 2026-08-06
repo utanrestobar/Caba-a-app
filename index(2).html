@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cabaña | Gestión</title>
+<style>
+:root{--bg:#090909;--card:#151515;--line:#292929;--txt:#f7f7f7;--muted:#aaa;--ok:#8fd19e;--warn:#ffd27a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:22px 18px 8px;max-width:900px;margin:auto}h1{margin:0;font-size:26px}.sub{color:var(--muted);font-size:13px}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 18px;max-width:900px;margin:auto;position:sticky;top:0;background:#090909eF}
+button,.btn,input,select,textarea{font:inherit}.tab,.btn{border:1px solid var(--line);background:#171717;color:white;border-radius:12px;padding:11px;cursor:pointer}
+.tab.active,.primary{background:white;color:#080808}.wrap{max-width:900px;margin:auto;padding:6px 18px 90px}.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin:10px 0}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+label{display:block;color:#bbb;font-size:12px;margin:7px 0 4px}input,select,textarea{width:100%;padding:11px;border-radius:10px;border:1px solid #333;background:#0d0d0d;color:white}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.pill{padding:5px 9px;border-radius:999px;background:#252525;font-size:12px}.ok{color:var(--ok)}.warn{color:var(--warn)}
+.item{border-top:1px solid #292929;padding:11px 0}.item:first-child{border-top:0}.right{margin-left:auto}.small{font-size:12px;color:#aaa}
+.danger{background:#331616;color:#ffb6b6;border-color:#5c2222}.hidden{display:none}@media(max-width:600px){nav{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>MI CABAÑA</h1><div class="sub">Reservas · pagos · acceso · operación</div></header>
+<nav>
+<button class="tab active" data-p="inicio">Inicio</button><button class="tab" data-p="reservas">Reservas</button>
+<button class="tab" data-p="operacion">Operación</button><button class="tab" data-p="ajustes">Ajustes</button>
+</nav>
+<main class="wrap">
+<section id="inicio" class="page active">
+ <div class="card"><b>Estado</b><div id="stats" style="margin-top:10px"></div></div>
+ <button class="btn primary" onclick="go('reservas');document.getElementById('nombre').focus()">+ Nueva reserva</button>
+ <div class="card"><b>Próximas reservas</b><div id="proximas"></div></div>
+</section>
+
+<section id="reservas" class="page">
+ <div class="card"><b>Nueva reserva</b>
+  <div class="grid">
+   <div><label>Huésped</label><input id="nombre" placeholder="Nombre"></div>
+   <div><label>Teléfono</label><input id="tel" placeholder="+595..."></div>
+   <div><label>Entrada</label><input id="entrada" type="date"></div>
+   <div><label>Salida</label><input id="salida" type="date"></div>
+   <div><label>Personas</label><input id="personas" type="number" min="2" value="2"></div>
+   <div><label>Total</label><input id="total" type="number" min="0" placeholder="0"></div>
+  </div>
+  <label>Estado del pago</label><select id="pago"><option>Pendiente</option><option>Pagado 100%</option></select>
+  <div style="height:10px"></div><button class="btn primary" onclick="guardarReserva()">Guardar reserva</button>
+  <div id="msg" class="small" style="margin-top:8px"></div>
+ </div>
+ <div class="card"><b>Reservas</b><div id="lista"></div></div>
+</section>
+
+<section id="operacion" class="page">
+ <div class="card"><b>Checklist de cabaña</b>
+  <div id="checks"></div><button class="btn" onclick="resetChecks()">Reiniciar checklist</button>
+ </div>
+ <div class="card"><b>Accesos</b><div class="small">El acceso se habilita únicamente para reservas con pago 100% confirmado.</div><div id="accesos"></div></div>
+ <div class="card"><b>Avisos</b><div id="avisos"></div></div>
+</section>
+
+<section id="ajustes" class="page">
+ <div class="card"><b>Configuración</b>
+  <div class="grid">
+   <div><label>Check-in</label><input id="checkin" type="time"></div><div><label>Check-out</label><input id="checkout" type="time"></div>
+   <div><label>Capacidad</label><input id="cap" type="number" min="2"></div><div><label>Confirmar pago antes de</label><select id="limite"><option value="24">24 horas</option><option value="48">48 horas</option></select></div>
+   <div><label>WhatsApp desayuno</label><input id="desayuno"></div><div><label>WhatsApp limpieza</label><input id="limpieza"></div>
+  </div>
+  <label>Política</label><textarea id="politica" rows="3"></textarea>
+  <div style="height:10px"></div><button class="btn primary" onclick="guardarConfig()">Guardar</button>
+ </div>
+ <div class="card"><b>Datos</b><div class="row"><button class="btn" onclick="exportar()">Exportar copia</button><label class="btn">Importar<input class="hidden" type="file" accept=".json" onchange="importar(this)"></label></div></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let reservas=JSON.parse(localStorage.getItem('cab_reservas')||'[]');
+let cfg=JSON.parse(localStorage.getItem('cab_cfg')||'null')||{checkin:'15:00',checkout:'11:00',cap:3,limite:'24',desayuno:'',limpieza:'',politica:'No se permiten mascotas. Reserva mínima: 2 personas.'};
+const tareas=['Cabaña limpia','Baño listo','Aire acondicionado','Horno / cocina','Vidrios','Toallas y ropa de cama','Faltantes revisados','Foto final'];
+let checks=JSON.parse(localStorage.getItem('cab_checks')||'{}');
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>go(b.dataset.p));
+function go(p){document.querySelectorAll('.page,.tab').forEach(x=>x.classList.remove('active'));$(p).classList.add('active');document.querySelector(`[data-p="${p}"]`).classList.add('active');render()}
+function overlap(a,b,c,d){return a<d&&c<b}
+function guardarReserva(){
+ let r={id:Date.now(),nombre:$('nombre').value.trim(),tel:$('tel').value.trim(),entrada:$('entrada').value,salida:$('salida').value,personas:+$('personas').value,total:+$('total').value||0,pago:$('pago').value};
+ if(!r.nombre||!r.entrada||!r.salida||r.salida<=r.entrada){$('msg').textContent='Revisá nombre y fechas.';return}
+ if(r.personas<2){$('msg').textContent='La reserva requiere mínimo 2 personas.';return}
+ if(r.personas>cfg.cap){$('msg').textContent='Supera la capacidad configurada.';return}
+ if(reservas.some(x=>overlap(r.entrada,r.salida,x.entrada,x.salida))){$('msg').textContent='⛔ Fechas ocupadas. No se guardó para evitar superposición.';return}
+ reservas.push(r);save();$('msg').textContent='✓ Reserva guardada';['nombre','tel','entrada','salida','total'].forEach(x=>$(x).value='');render()
+}
+function del(id){if(confirm('¿Eliminar reserva?')){reservas=reservas.filter(x=>x.id!==id);save();render()}}
+function togglePago(id){let r=reservas.find(x=>x.id===id);r.pago=r.pago==='Pagado 100%'?'Pendiente':'Pagado 100%';save();render()}
+function save(){localStorage.setItem('cab_reservas',JSON.stringify(reservas))}
+function render(){
+ reservas.sort((a,b)=>a.entrada.localeCompare(b.entrada));
+ $('lista').innerHTML=reservas.length?reservas.map(r=>card(r,true)).join(''):'<div class="small">Sin reservas.</div>';
+ let hoy=new Date().toISOString().slice(0,10), fut=reservas.filter(r=>r.salida>=hoy);
+ $('proximas').innerHTML=fut.length?fut.slice(0,5).map(r=>card(r,false)).join(''):'<div class="small">Sin próximas reservas.</div>';
+ $('stats').innerHTML=`<span class="pill">${fut.length} próximas</span> <span class="pill">${reservas.filter(r=>r.pago==='Pendiente'&&r.salida>=hoy).length} pagos pendientes</span>`;
+ $('accesos').innerHTML=fut.map(r=>`<div class="item"><b>${r.nombre}</b> · ${r.entrada}<div class="${r.pago==='Pagado 100%'?'ok':'warn'}">${r.pago==='Pagado 100%'?'✓ Acceso habilitado':'🔒 Acceso bloqueado hasta pago total'}</div></div>`).join('')||'<div class="small">Sin accesos próximos.</div>';
+ $('avisos').innerHTML=fut.map(r=>`<div class="item"><b>${r.nombre}</b><div class="small">Entrada ${r.entrada} ${cfg.checkin} · Desayuno y limpieza pendientes de coordinación.</div></div>`).join('')||'<div class="small">Sin avisos.</div>';
+ $('checks').innerHTML=tareas.map((t,i)=>`<label class="item"><input style="width:auto" type="checkbox" ${checks[i]?'checked':''} onchange="checks[${i}]=this.checked;localStorage.setItem('cab_checks',JSON.stringify(checks))"> ${t}</label>`).join('');
+}
+function card(r,actions){return `<div class="item"><div class="row"><b>${r.nombre}</b><span class="pill">${r.pago}</span></div><div class="small">${r.entrada} → ${r.salida} · ${r.personas} personas · ${r.total.toLocaleString()} </div>${actions?`<div class="row" style="margin-top:7px"><button class="btn" onclick="togglePago(${r.id})">Cambiar pago</button><button class="btn danger" onclick="del(${r.id})">Eliminar</button></div>`:''}</div>`}
+function resetChecks(){checks={};localStorage.setItem('cab_checks','{}');render()}
+function guardarConfig(){cfg={checkin:$('checkin').value,checkout:$('checkout').value,cap:+$('cap').value,limite:$('limite').value,desayuno:$('desayuno').value,limpieza:$('limpieza').value,politica:$('politica').value};localStorage.setItem('cab_cfg',JSON.stringify(cfg));render()}
+function loadCfg(){$('checkin').value=cfg.checkin;$('checkout').value=cfg.checkout;$('cap').value=cfg.cap;$('limite').value=cfg.limite;$('desayuno').value=cfg.desayuno;$('limpieza').value=cfg.limpieza;$('politica').value=cfg.politica}
+function exportar(){let b=new Blob([JSON.stringify({reservas,cfg},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='cabana-backup.json';a.click()}
+function importar(inp){let f=inp.files[0];if(!f)return;let rd=new FileReader();rd.onload=()=>{try{let d=JSON.parse(rd.result);reservas=d.reservas||[];cfg=d.cfg||cfg;save();localStorage.setItem('cab_cfg',JSON.stringify(cfg));loadCfg();render()}catch(e){alert('Archivo inválido')}};rd.readAsText(f)}
+loadCfg();render();
+</script></body></html>
