@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<title>Cabaña</title>
+
+<style>
+:root{
+  --bg:#000;
+  --card:#111;
+  --card2:#171717;
+  --line:#2a2a2a;
+  --txt:#fff;
+  --muted:#9a9a9a;
+  --ok:#54d38a;
+  --warn:#ffd166;
+  --danger:#ff7676;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif
+}
+.wrap{max-width:980px;margin:auto;padding:14px 12px 100px}
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:4px 0 14px
+}
+h1{font-size:28px;margin:0}
+h2{font-size:18px;margin:0 0 10px}
+.small{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:15px
+}
+.metric{font-size:26px;font-weight:800}
+.label{font-size:12px;color:var(--muted)}
+.section{margin-top:12px}
+.row{display:flex;gap:9px;flex-wrap:wrap}
+.row>*{flex:1;min-width:145px}
+input,select,textarea,button{
+  width:100%;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#0b0b0b;
+  color:#fff;
+  padding:12px;
+  font-size:15px
+}
+textarea{min-height:78px}
+button{
+  background:#f2f2f2;
+  color:#000;
+  border:0;
+  font-weight:750
+}
+button.secondary{
+  background:#1b1b1b;
+  color:#fff;
+  border:1px solid var(--line)
+}
+button.danger{background:#2b1111;color:#ffaaaa}
+button.approve{background:#12381f;color:#baf3cf}
+button.reject{background:#401717;color:#ffc1c1}
+.list{display:grid;gap:8px}
+.item{
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center
+}
+.pill{
+  font-size:11px;
+  padding:6px 8px;
+  border-radius:999px;
+  background:#252525
+}
+.ok{background:#10361f;color:#91efb4}
+.warn{background:#3a2d0f;color:#ffe08a}
+.dangerpill{background:#3b1414;color:#ffaaaa}
+.info{background:#10283a;color:#9bd7ff}
+.switch{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px
+}
+.switch button{width:auto;padding:8px 12px}
+.notice{
+  padding:11px;
+  border-radius:12px;
+  border:1px solid #2a2a2a;
+  background:#0c0c0c
+}
+.calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px
+}
+.day{
+  min-height:70px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:6px;
+  background:#111
+}
+.day.busy{outline:1px solid #704040}
+.day .n{font-weight:800}
+.day .b{font-size:10px;color:#ffb6b6;margin-top:5px}
+.policy{
+  background:#111;
+  border:1px solid #2a2a2a;
+  border-radius:14px;
+  padding:12px;
+  margin-top:10px
+}
+nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:rgba(0,0,0,.96);
+  border-top:1px solid var(--line);
+  display:flex;
+  justify-content:center;
+  z-index:20
+}
+nav .inner{
+  width:min(980px,100%);
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:5px;
+  padding:8px 8px calc(8px + env(safe-area-inset-bottom))
+}
+nav button{
+  background:transparent;
+  color:#999;
+  font-size:12px;
+  padding:10px 3px
+}
+nav button.active{background:#171717;color:#fff}
+.page{display:none}
+.page.active{display:block}
+.center{text-align:center}
+.empty{text-align:center;color:var(--muted);padding:16px 0}
+
+@media(max-width:700px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .day{min-height:58px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="top">
+  <div>
+    <h1>Cabaña</h1>
+    <div class="small">Sistema integral</div>
+  </div>
+  <div id="fechaHoy" class="small"></div>
+</div>
+
+<section id="inicio" class="page active">
+
+<div class="policy">
+  <strong>🐾 No se aceptan mascotas</strong>
+</div>
+
+<div class="grid section">
+  <div class="card">
+    <div id="m1" class="metric">0</div>
+    <div class="label">Solicitudes</div>
+  </div>
+
+  <div class="card">
+    <div id="m2" class="metric">0</div>
+    <div class="label">Esperando pago</div>
+  </div>
+
+  <div class="card">
+    <div id="m3" class="metric">0</div>
+    <div class="label">Confirmadas</div>
+  </div>
+
+  <div class="card">
+    <div id="m4" class="metric">0</div>
+    <div class="label">Próximos ingresos</div>
+  </div>
+</div>
+
+<div class="section card">
+  <h2>Estado del sistema</h2>
+  <div id="estadoSistema" class="list"></div>
+</div>
+
+<div class="section card">
+  <h2>Próximos movimientos</h2>
+  <div id="proximos" class="list"></div>
+</div>
+
+</section>
+
+<section id="reservas" class="page">
+
+<div class="card">
+<h2>Nueva solicitud</h2>
+
+<div class="row">
+  <input id="nombre" placeholder="Nombre del huésped">
+  <input id="telefono" placeholder="WhatsApp">
+</div>
+
+<div class="row" style="margin-top:9px">
+  <input id="entrada" type="date">
+  <input id="salida" type="date">
+  <input id="personas" type="number" min="2" value="2">
+</div>
+
+<div class="row" style="margin-top:9px">
+  <input id="precio" type="number" min="0" placeholder="Precio total">
+</div>
+
+<textarea id="notas" placeholder="Notas" style="margin-top:9px"></textarea>
+
+<div class="policy">
+  🐾 Amamos a los animales, pero no recibimos mascotas porque en la propiedad viven perros de gran tamaño. Gracias por comprender.
+</div>
+
+<button onclick="crearSolicitud()" style="margin-top:9px">
+Guardar solicitud
+</button>
+
+<div id="msg" class="small" style="margin-top:8px"></div>
+
+</div>
+
+<div class="section card">
+<h2>Solicitudes y reservas</h2>
+<div id="listaReservas" class="list"></div>
+</div>
+
+</section>
+
+<section id="calendario" class="page">
+
+<div class="card">
+
+<div class="row" style="align-items:center">
+  <button class="secondary" onclick="mes(-1)">←</button>
+
+  <div class="center" style="flex:3">
+    <h2 id="tituloMes"></h2>
+  </div>
+
+  <button class="secondary" onclick="mes(1)">→</button>
+</div>
+
+<div class="calendar" style="margin-top:10px">
+  <div class="small">Lun</div>
+  <div class="small">Mar</div>
+  <div class="small">Mié</div>
+  <div class="small">Jue</div>
+  <div class="small">Vie</div>
+  <div class="small">Sáb</div>
+  <div class="small">Dom</div>
+</div>
+
+<div id="cal" class="calendar" style="margin-top:5px"></div>
+
+</div>
+
+</section>
+
+<section id="operacion" class="page">
+
+<div class="card">
+  <h2>Operación</h2>
+  <div id="op" class="list"></div>
+</div>
+
+<div class="section card">
+<h2>Mensajes preparados</h2>
+<div class="notice small">
+La app abre mensajes preparados en WhatsApp. El envío final lo confirmás vos.
+</div>
+</div>
+
+</section>
+
+<section id="ajustes" class="page">
+
+<div class="card">
+
+<h2>Automatizaciones</h2>
+
+<div class="switch">
+  <div>
+    <strong>WhatsApp automático</strong>
+    <div class="small">Preparado para integración futura.</div>
+  </div>
+  <button id="waBtn" class="secondary" onclick="toggle('whatsapp')"></button>
+</div>
+
+<div class="switch" style="margin-top:9px">
+  <div>
+    <strong>Pagos automáticos</strong>
+    <div class="small">Preparado para integración futura.</div>
+  </div>
+  <button id="payBtn" class="secondary" onclick="toggle('pagos')"></button>
+</div>
+
+<div class="switch" style="margin-top:9px">
+  <div>
+    <strong>Acceso automático</strong>
+    <div class="small">Preparado para portón y cerradura.</div>
+  </div>
+  <button id="doorBtn" class="secondary" onclick="toggle('acceso')"></button>
+</div>
+
+</div>
+
+<div class="section card">
+
+<h2>Horarios y responsables</h2>
+
+<div class="row">
+  <input id="checkin" type="time">
+  <input id="checkout" type="time">
+</div>
+
+<div class="row" style="margin-top:9px">
+  <input id="capacidad" type="number" min="2">
+  <input id="pagoAntes" type="number" min="1" max="168" placeholder="Horas antes pago total">
+</div>
+
+<div class="row" style="margin-top:9px">
+  <input id="encDesayuno" placeholder="WhatsApp desayuno">
+  <input id="encLimpieza" placeholder="WhatsApp limpieza">
+</div>
+
+<div class="row" style="margin-top:9px">
+  <input id="responsable" placeholder="WhatsApp dueño">
+  <input id="alterno" placeholder="WhatsApp alterno">
+</div>
+
+<button onclick="guardarConfig()" style="margin-top:9px">
+Guardar ajustes
+</button>
+
+</div>
+
+<div class="section card">
+
+<h2>Respaldo</h2>
+
+<div class="row">
+  <button class="secondary" onclick="exportar()">Exportar</button>
+  <button class="secondary" onclick="importFile.click()">Importar</button>
+</div>
+
+<input id="importFile"
+type="file"
+accept="application/json"
+style="display:none"
+onchange="importar(event)">
+
+</div>
+
+</section>
+
+</div>
+
+<nav>
+<div class="inner">
+
+<button class="active" onclick="go('inicio',this)">Inicio</button>
+<button onclick="go('reservas',this)">Reservas</button>
+<button onclick="go('calendario',this)">Calendario</button>
+<button onclick="go('operacion',this)">Operación</button>
+<button onclick="go('ajustes',this)">Ajustes</button>
+
+</div>
+</nav>
+
+<script>
+
+const KEY='cabana_app_final_v2';
+
+let state=JSON.parse(localStorage.getItem(KEY)||'null')||{
+  reservas:[],
+  config:{
+    whatsapp:false,
+    pagos:false,
+    acceso:false,
+    checkin:'15:00',
+    checkout:'11:00',
+    capacidad:3,
+    pagoAntes:24,
+    encDesayuno:'',
+    encLimpieza:'',
+    responsable:'',
+    alterno:''
+  }
+};
+
+let vd=new Date();
+
+const $=id=>document.getElementById(id);
+
+const D=s=>new Date(s+'T12:00:00');
+
+const save=()=>{
+  localStorage.setItem(KEY,JSON.stringify(state));
+  renderAll();
+};
+
+const uid=()=>Math.random().toString(36).slice(2,8).toUpperCase();
+
+const overlap=(a1,a2,b1,b2)=>
+  D(a1)<D(b2)&&D(b1)<D(a2);
+
+function go(id,b){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  $(id).classList.add('active');
+
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+
+  renderAll();
+}
+
+function fechasBloqueadas(r){
+  return state.reservas.some(x=>{
+    if(x.id===r.id)return false;
+
+    if(x.estado==='rechazada')return false;
+
+    return overlap(
+      r.entrada,
+      r.salida,
+      x.entrada,
+      x.salida
+    );
+  });
+}
+
+function crearSolicitud(){
+
+  let r={
+    id:uid(),
+    nombre:$('nombre').value.trim(),
+    telefono:$('telefono').value.trim(),
+    entrada:$('entrada').value,
+    salida:$('salida').value,
+    personas:+$('personas').value,
+    precio:+$('precio').value||0,
+    notas:$('notas').value.trim(),
+
+    estado:'solicitud',
+    pago:'pendiente',
+
+    acceso:uid(),
+    desayuno:'pendiente',
+    limpieza:'pendiente'
+  };
+
+  if(!r.nombre||!r.entrada||!r.salida){
+    $('msg').textContent='Faltan nombre y fechas.';
+    return;
+  }
+
+  if(r.personas<2){
+    $('msg').textContent='Mínimo 2 personas.';
+    return;
+  }
+
+  if(r.personas>state.config.capacidad){
+    $('msg').textContent='Supera la capacidad configurada.';
+    return;
+  }
+
+  if(D(r.salida)<=D(r.entrada)){
+    $('msg').textContent='La salida debe ser posterior.';
+    return;
+  }
+
+  if(fechasBloqueadas(r)){
+    $('msg').textContent='⚠️ Fechas ocupadas. No se guardó.';
+    return;
+  }
+
+  state.reservas.push(r);
+
+  $('msg').textContent='Solicitud guardada.';
+
+  [
+    'nombre',
+    'telefono',
+    'entrada',
+    'salida',
+    'precio',
+    'notas'
+  ].forEach(i=>$(i).value='');
+
+  $('personas').value=2;
+
+  save();
+}
+
+function aprobar(id){
+
+  let r=state.reservas.find(x=>x.id===id);
+
+  if(fechasBloqueadas(r)){
+    alert('Esas fechas ya fueron ocupadas por otra reserva.');
+    return;
+  }
+
+  r.estado='esperando_pago';
+
+  save();
+}
+
+function rechazar(id){
+
+  let r=state.reservas.find(x=>x.id===id);
+
+  r.estado='rechazada';
+
+  save();
+}
+
+function confirmarPago(id){
+
+  let r=state.reservas.find(x=>x.id===id);
+
+  if(fechasBloqueadas(r)){
+    alert('No se puede confirmar porque las fechas están ocupadas.');
+    return;
+  }
+
+  r.pago='pagado';
+  r.estado='confirmada';
+
+  save();
+}
+
+function del(id){
+
+  if(confirm('¿Eliminar esta solicitud/reserva?')){
+    state.reservas=state.reservas.filter(x=>x.id!==id);
+    save();
+  }
+
+}
+
+function setop(id,k,v){
+
+  let r=state.reservas.find(x=>x.id===id);
+
+  r[k]=v;
+
+  save();
+}
+
+function waLink(r,tipo){
+
+  let msg='';
+
+  if(tipo==='aprobada'){
+    msg=
+`Hola ${r.nombre}. Tu solicitud para la cabaña del ${r.entrada} al ${r.salida} fue aprobada.
+
+Para confirmar definitivamente la reserva necesitamos el pago total.
+
+🐾 Amamos a los animales, pero no recibimos mascotas porque en la propiedad viven perros de gran tamaño. Gracias por comprender.`;
+  }
+
+  if(tipo==='rechazada'){
+    msg=
+`Hola ${r.nombre}. Las fechas solicitadas no están disponibles. Si querés, podés elegir otra fecha.`;
+  }
+
+  if(tipo==='pago'){
+    msg=
+`Hola ${r.nombre}. Tu reserva de la cabaña del ${r.entrada} al ${r.salida} queda confirmada una vez realizado el pago total.`;
+  }
+
+  if(tipo==='confirmada'){
+    msg=
+`Hola ${r.nombre}. Pago confirmado ✅
+
+Tu reserva de la cabaña del ${r.entrada} al ${r.salida} está confirmada.
+
+Check-in: ${state.config.checkin}
+Check-out: ${state.config.checkout}`;
+  }
+
+  if(tipo==='desayuno'){
+    msg=
+`Hola ${r.nombre}. Por favor confirmá el horario de desayuno para tu estadía.`;
+  }
+
+  if(tipo==='checkout'){
+    msg=
+`Hola ${r.nombre}. Te recordamos que el check-out es a las ${state.config.checkout}. ¡Gracias por hospedarte con nosotros!`;
+  }
+
+  let n=(r.telefono||'').replace(/\D/g,'');
+
+  if(!n){
+    alert('Esta reserva no tiene número de WhatsApp.');
+    return;
+  }
+
+  location.href=
+    `https://wa.me/${n}?text=${encodeURIComponent(msg)}`;
+}
+
+function estadoHTML(r){
+
+  if(r.estado==='solicitud'){
+    return '<span class="pill info">SOLICITUD</span>';
+  }
+
+  if(r.estado==='esperando_pago'){
+    return '<span class="pill warn">ESPERANDO PAGO</span>';
+  }
+
+  if(r.estado==='confirmada'){
+    return '<span class="pill ok">CONFIRMADA</span>';
+  }
+
+  if(r.estado==='rechazada'){
+    return '<span class="pill dangerpill">RECHAZADA</span>';
+  }
+
+  return '<span class="pill">SIN ESTADO</span>';
+}
+
+function renderReservas(){
+
+  let box=$('listaReservas');
+
+  let list=[...state.reservas]
+    .sort((a,b)=>a.entrada.localeCompare(b.entrada));
+
+  box.innerHTML=list.length
+    ?''
+    :'<div class="empty">Sin solicitudes.</div>';
+
+  list.forEach(r=>{
+
+    let e=document.createElement('div');
+
+    e.className='item';
+
+    let acciones='';
+
+    if(r.estado==='solicitud'){
+
+      acciones=`
+      <button class="approve" onclick="aprobar('${r.id}')">
+      APROBAR
+      </button>
+
+      <button class="reject" onclick="rechazar('${r.id}')">
+      RECHAZAR
+      </button>
+      `;
+
+    }
+
+    if(r.estado==='esperando_pago'){
+
+      acciones=`
+      <button onclick="confirmarPago('${r.id}')">
+      CONFIRMAR PAGO
+      </button>
+
+      <button class="secondary"
+      onclick="waLink(state.reservas.find(x=>x.id==='${r.id}'),'pago')">
+      Recordar pago
+      </button>
+      `;
+
+    }
+
+    if(r.estado==='confirmada'){
+
+      acciones=`
+      <button class="secondary"
+      onclick="waLink(state.reservas.find(x=>x.id==='${r.id}'),'confirmada')">
+      WhatsApp
+      </button>
+      `;
+
+    }
+
+    if(r.estado==='rechazada'){
+
+      acciones=`
+      <button class="secondary"
+      onclick="waLink(state.reservas.find(x=>x.id==='${r.id}'),'rechazada')">
+      Avisar rechazo
+      </button>
+      `;
+
+    }
+
+    e.innerHTML=`
+
+    <div>
+
+      <strong>${r.nombre}</strong>
+
+      <div class="small">
+      ${r.entrada} → ${r.salida}
+      · ${r.personas} personas
+      </div>
+
+      <div style="margin-top:6px">
+      ${estadoHTML(r)}
+      </div>
+
+    </div>
+
+    <div style="min-width:145px;display:grid;gap:5px">
+
+    ${acciones}
+
+    <button class="danger"
+    onclick="del('${r.id}')">
+    Eliminar
+    </button>
+
+    </div>
+    `;
+
+    box.appendChild(e);
+
+  });
+
+}
+
+function renderInicio(){
+
+  let solicitudes=
+    state.reservas.filter(r=>r.estado==='solicitud');
+
+  let esperando=
+    state.reservas.filter(r=>r.estado==='esperando_pago');
+
+  let confirmadas=
+    state.reservas.filter(r=>r.estado==='confirmada');
+
+  let now=new Date();
+
+  let seven=
+    new Date(now.getTime()+7*86400000);
+
+  let proximosIngresos=
+    confirmadas.filter(r=>
+      D(r.entrada)>=now &&
+      D(r.entrada)<=seven
+    );
+
+  $('m1').textContent=solicitudes.length;
+
+  $('m2').textContent=esperando.length;
+
+  $('m3').textContent=confirmadas.length;
+
+  $('m4').textContent=proximosIngresos.length;
+
+  $('estadoSistema').innerHTML=`
+
+  <div class="item">
+    <strong>WhatsApp</strong>
+    <span class="pill ${state.config.whatsapp?'ok':'warn'}">
+    ${state.config.whatsapp?'ACTIVO':'APAGADO'}
+    </span>
+  </div>
+
+  <div class="item">
+    <strong>Pagos automáticos</strong>
+    <span class="pill ${state.config.pagos?'ok':'warn'}">
+    ${state.config.pagos?'ACTIVOS':'APAGADOS'}
+    </span>
+  </div>
+
+  <div class="item">
+    <strong>Acceso automático</strong>
+    <span class="pill ${state.config.acceso?'ok':'warn'}">
+    ${state.config.acceso?'ACTIVO':'APAGADO'}
+    </span>
+  </div>
+
+  `;
+
+  let p=[
+    ...solicitudes,
+    ...esperando,
+    ...confirmadas
+  ]
+  .sort((a,b)=>a.entrada.localeCompare(b.entrada))
+  .slice(0,6);
+
+  $('proximos').innerHTML=
+    p.length
+    ?''
+    :'<div class="empty">Sin movimientos próximos.</div>';
+
+  p.forEach(r=>{
+
+    let e=document.createElement('div');
+
+    e.className='item';
+
+    e.innerHTML=`
+
+    <div>
+      <strong>${r.nombre}</strong>
+      <div class="small">${r.entrada}</div>
+    </div>
+
+    ${estadoHTML(r)}
+    `;
+
+    $('proximos').appendChild(e);
+
+  });
+
+}
+
+function renderCal(){
+
+  let y=vd.getFullYear();
+
+  let m=vd.getMonth();
+
+  $('tituloMes').textContent=
+    new Intl.DateTimeFormat(
+      'es',
+      {month:'long',year:'numeric'}
+    ).format(vd);
+
+  $('cal').innerHTML='';
+
+  let f=new Date(y,m,1);
+
+  let off=(f.getDay()+6)%7;
+
+  let days=
+    new Date(y,m+1,0).getDate();
+
+  for(let i=0;i<off;i++){
+    $('cal').innerHTML+='<div></div>';
+  }
+
+  for(let n=1;n<=days;n++){
+
+    let ds=
+      `${y}-${String(m+1).padStart(2,'0')}-${String(n).padStart(2,'0')}`;
+
+    let rr=
+      state.reservas.filter(r=>
+        r.estado!=='rechazada' &&
+        D(ds)>=D(r.entrada) &&
+        D(ds)<D(r.salida)
+      );
+
+    let e=document.createElement('div');
+
+    e.className='day'+(rr.length?' busy':'');
+
+    e.innerHTML=`
+
+    <div class="n">${n}</div>
+
+    ${rr.map(r=>
+      `<div class="b">${r.nombre}</div>`
+    ).join('')}
+
+    `;
+
+    $('cal').appendChild(e);
+
+  }
+
+}
+
+function mes(n){
+
+  vd=
+    new Date(
+      vd.getFullYear(),
+      vd.getMonth()+n,
+      1
+    );
+
+  renderCal();
+
+}
+
+function renderOp(){
+
+  let l=
+    state.reservas
+    .filter(r=>r.estado==='confirmada')
+    .sort((a,b)=>a.entrada.localeCompare(b.entrada));
+
+  $('op').innerHTML=
+    l.length
+    ?''
+    :'<div class="empty">Sin reservas confirmadas.</div>';
+
+  l.forEach(r=>{
+
+    let e=document.createElement('div');
+
+    e.className='card';
+
+    e.innerHTML=`
+
+    <strong>${r.nombre}</strong>
+
+    <div class="small">
+    ${r.entrada} → ${r.salida}
+    </div>
+
+    <div class="row" style="margin-top:8px">
+
+    <select onchange="setop('${r.id}','desayuno',this.value)">
+
+    <option value="pendiente"
+    ${r.desayuno==='pendiente'?'selected':''}>
+    Desayuno pendiente
+    </option>
+
+    <option value="confirmado"
+    ${r.desayuno==='confirmado'?'selected':''}>
+    Desayuno confirmado
+    </option>
+
+    <option value="hecho"
+    ${r.desayuno==='hecho'?'selected':''}>
+    Entregado
+    </option>
+
+    </select>
+
+    <select onchange="setop('${r.id}','limpieza',this.value)">
+
+    <option value="pendiente"
+    ${r.limpieza==='pendiente'?'selected':''}>
+    Limpieza pendiente
+    </option>
+
+    <option value="lista"
+    ${r.limpieza==='lista'?'selected':''}>
+    Cabaña lista
+    </option>
+
+    </select>
+
+    </div>
+
+    <div class="row" style="margin-top:8px">
+
+    <button class="secondary"
+    onclick="waLink(state.reservas.find(x=>x.id==='${r.id}'),'desayuno')">
+    Mensaje desayuno
+    </button>
+
+    <button class="secondary"
+    onclick="waLink(state.reservas.find(x=>x.id==='${r.id}'),'checkout')">
+    Mensaje checkout
+    </button>
+
+    </div>
+    `;
+
+    $('op').appendChild(e);
+
+  });
+
+}
+
+function toggle(k){
+
+  state.config[k]=!state.config[k];
+
+  save();
+
+}
+
+function cargar(){
+
+  let c=state.config;
+
+  $('checkin').value=c.checkin;
+
+  $('checkout').value=c.checkout;
+
+  $('capacidad').value=c.capacidad;
+
+  $('pagoAntes').value=c.pagoAntes;
+
+  $('encDesayuno').value=c.encDesayuno;
+
+  $('encLimpieza').value=c.encLimpieza;
+
+  $('responsable').value=c.responsable;
+
+  $('alterno').value=c.alterno;
+
+  $('waBtn').textContent=
+    c.whatsapp?'ACTIVADO':'DESACTIVADO';
+
+  $('payBtn').textContent=
+    c.pagos?'ACTIVADO':'DESACTIVADO';
+
+  $('doorBtn').textContent=
+    c.acceso?'ACTIVADO':'DESACTIVADO';
+
+}
+
+function guardarConfig(){
+
+  Object.assign(
+    state.config,
+    {
+      checkin:$('checkin').value,
+      checkout:$('checkout').value,
+      capacidad:+$('capacidad').value,
+      pagoAntes:+$('pagoAntes').value,
+      encDesayuno:$('encDesayuno').value.trim(),
+      encLimpieza:$('encLimpieza').value.trim(),
+      responsable:$('responsable').value.trim(),
+      alterno:$('alterno').value.trim()
+    }
+  );
+
+  save();
+
+  alert('Ajustes guardados');
+
+}
+
+function exportar(){
+
+  let a=document.createElement('a');
+
+  a.href=
+    URL.createObjectURL(
+      new Blob(
+        [JSON.stringify(state,null,2)],
+        {type:'application/json'}
+      )
+    );
+
+  a.download='cabana-respaldo.json';
+
+  a.click();
+
+}
+
+function importar(ev){
+
+  let f=ev.target.files[0];
+
+  if(!f)return;
+
+  let r=new FileReader();
+
+  r.onload=()=>{
+
+    try{
+
+      state=JSON.parse(r.result);
+
+      save();
+
+      alert('Importado');
+
+    }catch(e){
+
+      alert('Archivo inválido');
+
+    }
+
+  };
+
+  r.readAsText(f);
+
+}
+
+function renderAll(){
+
+  renderInicio();
+
+  renderReservas();
+
+  renderCal();
+
+  renderOp();
+
+  cargar();
+
+}
+
+$('fechaHoy').textContent=
+  new Intl.DateTimeFormat(
+    'es',
+    {dateStyle:'medium'}
+  ).format(new Date());
+
+renderAll();
+
+if('serviceWorker' in navigator){
+
+  navigator.serviceWorker
+  .register('sw.js')
+  .catch(()=>{});
+
+}
+
+</script>
+
+</body>
+</html>
